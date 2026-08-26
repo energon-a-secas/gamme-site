@@ -85,13 +85,15 @@ main#main {
   gap: var(--space-6);
 }
 .stack--tight { gap: var(--space-4); }
-.stack--loose { gap: var(--space-8); }
+/* 32px between major sections read as "no space at all" once the sections had
+   headings of their own. Separate them the way a page break would. */
+.stack--loose { gap: 56px; }
 
 /* Page section: title row + body (replaces “card everything” for grouping) */
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-6);
 }
 .section__header {
   display: flex;
@@ -108,15 +110,15 @@ main#main {
 }
 .section__title {
   font-size: var(--text-xl);
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 650;
+  letter-spacing: 0.01em;
   color: var(--text-primary);
 }
 .section__lead {
   font-size: var(--text-sm);
   color: var(--text-muted);
-  line-height: 1.45;
-  max-width: 52ch;
+  line-height: 1.6;
+  max-width: 64ch;
 }
 .section__lead code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -600,31 +602,87 @@ button:active,
 
 .app-shell {
   width: 100%;
-  max-width: 1080px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: var(--space-5) var(--space-6) var(--space-8);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
+  padding: var(--space-6) var(--space-6) 64px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  align-content: start;
+}
+.app-shell > * { min-width: 0; }
+
+/* Desktop moves the section nav into the left gutter that was empty anyway,
+   which also narrows the reading column toward a comfortable measure instead
+   of stretching every paragraph across the full window. */
+@media (min-width: 940px) {
+  .app-shell {
+    grid-template-columns: 208px minmax(0, 1fr);
+    gap: var(--space-8);
+    padding: var(--space-8) var(--space-8) 80px;
+  }
 }
 
-/* ── View tabs ─────────────────────────────────────────────── */
-.viewtabs {
+/* ── Header skin: cosy wood ────────────────────────────────────
+ * The one sanctioned exception to "no site-local header CSS": a site-authored
+ * `custom` skin, tokens only. The selector below is copied exactly from
+ * packages/neorgon-ui/header/README.md, because the scoping IS the contract:
+ *
+ *   html:not([data-theme])  collapses the skin the moment a visitor picks a
+ *                           theme with ?theme= , so visitor choice still wins.
+ *   [data-header-skin]      lands at (0,3,1): above the kit default, below an
+ *                           armed season, which is the precedence the fleet uses.
+ *
+ * Warm walnut into a dark table edge, so the bar reads like the side of a
+ * boardgame box rather than a product header.
+ */
+html:not([data-theme]) .header-bar[data-header-skin="custom"] {
+  --header-bg-start: #6b3f23;
+  --header-bg-mid:   #4a2b17;
+  --header-bg-end:   #24150b;
+  --header-accent:   #e8b979;
+
+  /* The grain. Still tokens only: the kit composes --header-bg ON .header-bar
+     precisely so a skin can replace it, and its own comment says so. Three
+     layers over the base ramp, all of them low alpha so the header text keeps
+     its contrast: fine grain, a slower cathedral figure, then two plank seams.
+     No image, no request, and it re-skins with the season like any other value. */
+  --header-bg:
+    repeating-linear-gradient(94deg,
+      rgba(0, 0, 0, .10) 0px, rgba(0, 0, 0, .10) 1px,
+      rgba(255, 214, 160, .035) 1px, rgba(255, 214, 160, .035) 3px,
+      transparent 3px, transparent 7px),
+    repeating-linear-gradient(87deg,
+      rgba(0, 0, 0, .07) 0px, rgba(0, 0, 0, .07) 2px,
+      transparent 2px, transparent 29px),
+    linear-gradient(to bottom,
+      rgba(255, 226, 183, .05) 0 1px,
+      transparent 1px calc(100% - 1px),
+      rgba(0, 0, 0, .22) calc(100% - 1px) 100%),
+    linear-gradient(in oklch 135deg,
+      var(--header-bg-start) 0%, var(--header-bg-mid) 52%, var(--header-bg-end) 100%);
+
+  /* Warm the bottom ramp to match, instead of the cool default hairline. */
+  --header-edge-from: rgba(255, 205, 145, .12);
+  --header-edge-to:   rgba(255, 205, 145, .30);
+}
+
+/* ── Section nav: a row on mobile, a rail on desktop ───────── */
+.viewnav {
   display: flex;
   gap: var(--space-1);
   padding: 4px;
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  align-self: flex-start;
-  max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
 }
-.viewtabs::-webkit-scrollbar { display: none; }
+.viewnav::-webkit-scrollbar { display: none; }
+
 .viewtab {
   flex: 0 0 auto;
-  min-height: 34px;
+  min-height: 40px;
   padding: 0 var(--space-4);
   border: 0;
   border-radius: calc(var(--radius) - 4px);
@@ -636,46 +694,51 @@ button:active,
   cursor: pointer;
   transition: background-color var(--dur), color var(--dur);
 }
-.viewtab:hover { color: var(--text-primary); }
+.viewtab:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.05); }
 .viewtab.is-active {
   background: color-mix(in srgb, var(--game-accent) 20%, transparent);
   color: var(--text-primary);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--game-accent) 45%, transparent);
 }
 
-/* ── Game switcher menu ────────────────────────────────────── */
-.header-menu {
-  position: fixed;
-  z-index: 300;
-  min-width: 260px;
-  padding: 6px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-modal);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+@media (min-width: 940px) {
+  .viewnav {
+    position: sticky;
+    top: 76px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: var(--space-2);
+    overflow: visible;
+    align-self: start;
+  }
+  .viewtab {
+    min-height: 44px;
+    text-align: left;
+    padding: 0 var(--space-3);
+    display: flex;
+    align-items: center;
+  }
+  /* An accent spine reads as "you are here" without shouting. */
+  .viewtab.is-active {
+    background: color-mix(in srgb, var(--game-accent) 14%, transparent);
+    box-shadow: inset 3px 0 0 var(--game-accent);
+  }
 }
-.header-menu__item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-primary);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color var(--dur);
-}
-.header-menu__item:hover { background: var(--surface-2); }
-.header-menu__item.is-active { background: color-mix(in srgb, var(--game-accent) 16%, transparent); }
+
+/* ── Game switcher menu ────────────────────────────────────────
+ * The panel is the Header Kit's .header-menu: it owns the box, the shadow,
+ * the open animation and the a11y. The kit's stylesheet loads after this one,
+ * so a site-local .header-menu rule loses anyway. Only the row contents here.
+ */
 .menudot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
-.menutext { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.menutext small { color: var(--text-muted); font-size: var(--text-xs); }
+.menutext { display: flex; flex-direction: column; gap: 2px; min-width: 0; text-align: left; }
+.menutext small { line-height: 1.4; }
+/* Without a cap the taglines make a 450px dropdown out of a 180px control. */
+.header-menu__item { max-width: 320px; }
+.menutext small { color: var(--text-muted); font-size: var(--text-xs); font-weight: 400; }
+.header-menu__item { display: flex; align-items: center; gap: var(--space-3); width: 100%; }
+.header-menu__item.is-active .menutext strong { color: var(--game-accent); }
 
 /* ── The core rule banner ──────────────────────────────────── */
 .corerule {
@@ -699,7 +762,7 @@ button:active,
   color: var(--game-accent);
 }
 .corerule__title { font-size: var(--text-xl); font-weight: 650; }
-.corerule__body { color: var(--text-secondary); line-height: 1.6; max-width: 68ch; }
+.corerule__body { color: var(--text-secondary); line-height: 1.7; max-width: 62ch; }
 .corerule__formula {
   align-self: flex-start;
   margin-top: var(--space-2);
@@ -715,14 +778,14 @@ button:active,
 /* ── Pattern cards ─────────────────────────────────────────── */
 .patterngrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-6);
 }
 .pcard {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-5);
+  gap: var(--space-4);
+  padding: var(--space-6);
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1065,7 +1128,7 @@ button:active,
 .feedback.is-right .feedback__head strong { color: #4ade80; }
 .feedback.is-wrong .feedback__head strong { color: #fb7185; }
 .feedback__time { font-size: var(--text-sm); color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.feedback__detail { color: var(--text-secondary); line-height: 1.6; max-width: 70ch; }
+.feedback__detail { color: var(--text-secondary); line-height: 1.65; max-width: 68ch; }
 
 /* ── Scoreboard ────────────────────────────────────────────── */
 .scoretable { display: flex; flex-direction: column; gap: 6px; }
@@ -1090,19 +1153,19 @@ button:active,
 .meter__fill.is-empty { background: transparent; }
 
 /* ── Rules tab ─────────────────────────────────────────────── */
-.ruletable { display: flex; flex-direction: column; gap: var(--space-2); }
+.ruletable { display: flex; flex-direction: column; gap: var(--space-3); }
 .rulerow {
   display: grid;
   grid-template-columns: 230px minmax(0, 1fr);
-  gap: var(--space-4);
+  gap: var(--space-6);
   align-items: start;
-  padding: var(--space-4);
+  padding: var(--space-5);
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 .rulerow__name { display: flex; flex-direction: column; gap: var(--space-2); }
-.rulerow__body { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; }
+.rulerow__body { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.65; max-width: 68ch; }
 .ruleswitch { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--text-muted); cursor: pointer; }
 .ruleswitch input { width: 18px; height: 18px; accent-color: var(--game-accent); cursor: pointer; }
 
@@ -1198,19 +1261,19 @@ button:active,
 @media (max-width: 700px) {
   .app-shell { padding: var(--space-4) var(--space-4) var(--space-8); gap: var(--space-4); }
   .msboard { --cell: 26px; padding: var(--space-2); }
-  .gboard { --cell: 38px; }
+  .gboard, .chess-frame { --cell: 38px; }
   .drillprompt { font-size: var(--text-base); }
   .patterngrid { grid-template-columns: 1fr; }
 }
 @media (max-width: 420px) {
   .msboard { --cell: 22px; }
-  .gboard { --cell: 34px; }
+  .gboard, .chess-frame { --cell: 34px; }
   .msmini { grid-template-columns: repeat(var(--cols), 26px); }
   .msmini__c { width: 26px; height: 26px; font-size: 12px; }
 }
 
 /* ── Chess ─────────────────────────────────────────────────── */
-.chess-frame { display: flex; gap: 4px; justify-content: center; align-items: stretch; }
+.chess-frame { display: flex; gap: 4px; justify-content: center; align-items: stretch; max-width: 100%; overflow-x: auto; }
 .chess-ranks {
   display: grid;
   grid-template-rows: repeat(8, var(--cell, 44px));

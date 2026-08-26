@@ -58,7 +58,7 @@
 
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <header class="header-bar" data-header-mode="app">
+  <header class="header-bar" data-header-mode="app" data-header-skin="custom">
     <div class="header-logo">
       <a href="https://neorgon.com/" target="_blank" rel="noopener noreferrer">
         <img src="https://cdn.neorgon.org/v1.0.0/energon-classic-logo.png" class="header-logo-img" alt="Logo">
@@ -71,10 +71,11 @@
 
     <div class="header-right">
       <div class="header-actions">
-        <button class="btn btn--ghost btn--sm" id="gameSwitchBtn" data-keep-mobile aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn--ghost btn--sm" id="gameSwitchBtn" data-keep-mobile aria-haspopup="menu" aria-expanded="false">
           <span id="gameSwitchLabel">Minesweeper</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
         </button>
+        <div class="header-menu" id="gameMenu" role="menu" aria-labelledby="gameSwitchBtn" data-keep-mobile></div>
         <button class="btn btn--ghost btn--sm" id="progressBtn">Progress</button>
         <button class="btn btn--ghost btn--sm" id="aboutBtn">About</button>
       </div>
@@ -87,12 +88,11 @@
     </div>
   </header>
 
-  <div class="header-menu" id="gameMenu" hidden role="menu" aria-labelledby="gameSwitchBtn"></div>
 
   <main id="main">
     <div class="app-shell">
 
-      <nav class="viewtabs" id="viewTabs" aria-label="Section"></nav>
+      <nav class="viewnav" id="viewTabs" aria-label="Section"></nav>
 
       <div class="view" id="view"></div>
 

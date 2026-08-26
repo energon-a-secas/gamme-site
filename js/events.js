@@ -43,8 +43,7 @@ export function closeModal(id) {
 function getOpenModal() { return document.querySelector('.modal:not([hidden])'); }
 
 function onDocumentKeydown(e) {
-  const menu = $('gameMenu');
-  if (menu && !menu.hidden && e.key === 'Escape') { closeGameMenu(); return; }
+  if (gameMenuOpen() && e.key === 'Escape') { closeGameMenu(); $('gameSwitchBtn')?.focus(); return; }
 
   const modal = getOpenModal();
   if (!modal || !modal.id) return;
@@ -65,15 +64,18 @@ function onModalClick(e) {
 }
 
 // ── Game switcher ────────────────────────────────────────────
+/**
+ * The Header Kit owns .header-menu: its CSS is `display:none` until `.open`,
+ * and it loads after style.css, so toggling the hidden attribute styled a menu
+ * that could never appear. The class is the contract; the kit also positions it
+ * against .header-actions, so no inline coordinates are needed either.
+ */
 function openGameMenu() {
   const menu = $('gameMenu');
   const btn = $('gameSwitchBtn');
   if (!menu || !btn) return;
-  menu.hidden = false;
+  menu.classList.add('open');
   btn.setAttribute('aria-expanded', 'true');
-  const rect = btn.getBoundingClientRect();
-  menu.style.top = `${rect.bottom + 8}px`;
-  menu.style.right = `${Math.max(8, window.innerWidth - rect.right)}px`;
   menu.querySelector('button')?.focus();
 }
 
@@ -81,8 +83,12 @@ function closeGameMenu() {
   const menu = $('gameMenu');
   const btn = $('gameSwitchBtn');
   if (!menu || !btn) return;
-  menu.hidden = true;
+  menu.classList.remove('open');
   btn.setAttribute('aria-expanded', 'false');
+}
+
+function gameMenuOpen() {
+  return $('gameMenu')?.classList.contains('open') === true;
 }
 
 // ── Progress ─────────────────────────────────────────────────
@@ -134,8 +140,7 @@ export function bindEvents(s = state) {
 
   $('gameSwitchBtn')?.addEventListener('click', (e) => {
     e.stopPropagation();
-    const menu = $('gameMenu');
-    if (menu && menu.hidden) openGameMenu(); else closeGameMenu();
+    if (gameMenuOpen()) closeGameMenu(); else openGameMenu();
   });
 
   $('gameMenu')?.addEventListener('click', (e) => {
@@ -148,8 +153,7 @@ export function bindEvents(s = state) {
   });
 
   document.addEventListener('click', (e) => {
-    const menu = $('gameMenu');
-    if (!menu || menu.hidden) return;
+    if (!gameMenuOpen()) return;
     if (e.target.closest('#gameMenu') || e.target.closest('#gameSwitchBtn')) return;
     closeGameMenu();
   });
@@ -177,5 +181,4 @@ export function bindEvents(s = state) {
     if (n >= 1 && n <= 4) { s.view = views[n - 1]; save(s); render(s); }
   });
 
-  window.addEventListener('resize', () => { if (!$('gameMenu')?.hidden) openGameMenu(); });
 }
