@@ -1,0 +1,66 @@
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#0f172a"
+    primaryTextColor: "#e2e8f0"
+    primaryBorderColor: "#0063e5"
+    lineColor: "#38bdf8"
+    secondaryColor: "#1e293b"
+    tertiaryColor: "#1e293b"
+    clusterBkg: "#f0f7ff"
+    clusterBorder: "#bfdbfe"
+    edgeLabelBackground: "#e8f0ff"
+    mainBkg: "#0f172a"
+    nodeBorder: "#0063e5"
+    titleColor: "#1e1b4b"
+    fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif"
+    fontSize: "13px"
+---
+flowchart TB
+    User([User]) --> HTML["index.html\nApp shell"]
+
+    subgraph Shell["Shell (game agnostic)"]
+        HTML --> app["app.js\nEntry point"]
+        app --> registry["registry.js\nThe game module contract"]
+        app --> state["state.js\nSettings + drill record"]
+        app --> render["render.js\nView tabs, pattern cards"]
+        app --> events["events.js\nListeners, modals"]
+        render --> drills["drills.js\nLevels, clock, scoring"]
+    end
+
+    state <-->|"gambit-state-v1"| Storage[("localStorage")]
+
+    registry -.->|"registerGame()"| Games
+
+    subgraph Games["Game modules"]
+        MS["minesweeper/"]
+        Chess["chess/"]
+        Econ["economy/\nTollworks"]
+        T48["twenty48/"]
+    end
+
+    subgraph MSInternals["minesweeper internals"]
+        engine["engine.js\nBoard mechanics, ruleset fields"]
+        solver["solver.js\n3 local rules, frontier enumeration"]
+        prob["probability.js\nWeighted odds + the mine counter"]
+        analysis["analysis.js\nWhat a player can prove"]
+        generate["generate.js\nPlacement policy, no-guess search"]
+        patterns["patterns.js\n13 pattern cards"]
+        drillgen["drill-gen.js\nPositions built, then solved"]
+    end
+
+    MS --> engine
+    engine --> solver
+    solver --> prob
+    solver --> analysis
+    prob --> analysis
+    analysis --> generate
+    generate -->|"reject until solvable"| analysis
+    drillgen -->|"answers come from here"| analysis
+    MS --> patterns
+    MS --> drillgen
+
+    drills -->|"make(level)"| drillgen
+    tests["tests/run.mjs"] -.->|"brute force check"| prob
+    tests -.->|"sound AND complete"| analysis

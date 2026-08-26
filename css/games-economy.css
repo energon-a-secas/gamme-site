@@ -1,0 +1,195 @@
+/* ── Tollworks surfaces ─────────────────────────────────────────
+ *
+ * Only what the shared game classes do not already cover: the ring board,
+ * its tokens, and the horizontal bar charts the Monte Carlo draws into.
+ * Everything else in the module uses .card, .statbar, .kv, .ruletable,
+ * .choicegrid, .callout and .diagram from style.css.
+ *
+ * Every class here is prefixed economy- so it cannot collide with another
+ * game module.
+ */
+
+/* ── the ring board ──────────────────────────────────────────── */
+
+.economy-board {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 4px;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.economy-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font: inherit;
+  text-align: center;
+  line-height: 1.15;
+}
+
+button.economy-cell { cursor: pointer; }
+button.economy-cell:hover { border-color: var(--border-strong); }
+
+.economy-cell.is-corner {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+.economy-cell.is-yard { border-color: color-mix(in srgb, var(--game-accent, #f59e0b) 45%, transparent); }
+.economy-cell.is-dispatch { border-color: color-mix(in srgb, var(--danger, #e11d48) 45%, transparent); }
+
+.economy-name {
+  font-size: clamp(8px, 1.55vw, 11px);
+  font-weight: 600;
+  color: var(--text-primary);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.economy-sub {
+  font-size: clamp(7px, 1.3vw, 10px);
+  color: var(--text-muted);
+}
+
+.economy-stripe {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+}
+
+/* Ownership reads off the outline, so the set colour keeps the stripe. */
+.economy-cell.is-you { box-shadow: inset 0 0 0 2px var(--game-accent, #f59e0b); }
+.economy-cell.is-bot { box-shadow: inset 0 0 0 2px var(--text-muted); }
+.economy-cell.is-mark { outline: 2px dashed var(--game-accent, #f59e0b); outline-offset: -1px; }
+.economy-cell.is-right { background: color-mix(in srgb, #10b981 22%, var(--surface-1)); }
+.economy-cell.is-wrong { background: color-mix(in srgb, var(--danger, #e11d48) 22%, var(--surface-1)); }
+
+.economy-pips { display: flex; gap: 2px; }
+.economy-pip {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--text-primary);
+}
+
+.economy-toks { display: flex; gap: 3px; min-height: 8px; }
+.economy-tok {
+  width: 8px; height: 8px; border-radius: 50%;
+  border: 1px solid var(--bg);
+}
+.economy-tok.is-you { background: var(--game-accent, #f59e0b); }
+.economy-tok.is-bot { background: #94a3b8; }
+
+/* ── the middle of the ring ──────────────────────────────────── */
+
+.economy-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  text-align: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+
+.economy-dice { display: flex; gap: var(--space-2); }
+.economy-die {
+  display: grid;
+  place-items: center;
+  width: 34px; height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--text-primary);
+  color: var(--bg);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+.economy-die.is-idle { background: var(--surface-2); color: var(--text-muted); }
+
+.economy-mid__turn { font-weight: 600; color: var(--text-primary); }
+.economy-mid__note { font-size: var(--text-xs); color: var(--text-muted); max-width: 30ch; }
+
+/* ── legend, policy, log ─────────────────────────────────────── */
+
+.economy-legend { display: flex; flex-wrap: wrap; gap: var(--space-4); font-size: var(--text-sm); }
+.economy-legend__item { display: inline-flex; align-items: center; gap: var(--space-2); }
+.economy-swatch {
+  display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+  vertical-align: middle; margin-right: 6px;
+}
+
+.economy-policy { margin: 0; padding-left: 1.3em; color: var(--text-secondary); }
+.economy-policy li { margin-bottom: var(--space-2); font-size: var(--text-sm); }
+
+.economy-log { display: flex; flex-direction: column; gap: 2px; max-height: 260px; overflow-y: auto; }
+.economy-log__line { font-size: var(--text-xs); color: var(--text-secondary); }
+.economy-log__line.is-good { color: #34d399; }
+.economy-log__line.is-warn { color: #fbbf24; }
+.economy-log__line.is-bot { color: var(--text-muted); font-style: italic; }
+.economy-log__line.is-end { color: var(--text-primary); font-weight: 600; }
+
+/* ── bar charts ──────────────────────────────────────────────── */
+
+.economy-bars { display: flex; flex-direction: column; gap: 3px; }
+.economy-bar {
+  display: grid;
+  grid-template-columns: 11ch 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.economy-bar__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.economy-bar__track { height: 10px; border-radius: 5px; background: var(--surface-2); overflow: hidden; }
+.economy-bar__fill {
+  display: block; height: 100%; border-radius: 5px;
+  background: var(--game-accent, #f59e0b);
+}
+.economy-bar__val { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.economy-bar.is-site .economy-bar__label { color: var(--text-primary); }
+.economy-bars.is-mini .economy-bar { grid-template-columns: 9ch 1fr auto; }
+
+/* ── the strip diagram ───────────────────────────────────────── */
+
+.economy-strip { display: flex; flex-wrap: wrap; gap: 3px; }
+.economy-chip {
+  display: grid;
+  place-items: center;
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--chip, var(--surface-2));
+  color: var(--text-primary);
+  font-size: 9px;
+  font-weight: 600;
+}
+.economy-chip.is-yard, .economy-chip.is-dispatch, .economy-chip.is-depot, .economy-chip.is-layby {
+  background: var(--surface-2);
+}
+.economy-chip.is-mark { outline: 2px solid var(--game-accent, #f59e0b); outline-offset: 1px; }
+.economy-chip.is-hot { box-shadow: 0 0 0 2px color-mix(in srgb, var(--game-accent, #f59e0b) 60%, transparent); }
+
+@media (max-width: 560px) {
+  .economy-mid { padding: var(--space-1); gap: 4px; }
+  .economy-die { width: 24px; height: 24px; font-size: var(--text-sm); }
+  .economy-mid__note { font-size: 9px; max-width: 22ch; }
+  .economy-bar { grid-template-columns: 8ch 1fr auto; }
+}
+
+/* An owned cell shows rent, not price. Brighter, so the two never read alike. */
+.economy-sub.is-rent { color: var(--text-primary); font-weight: 600; }
