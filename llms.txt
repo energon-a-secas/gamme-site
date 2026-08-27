@@ -1,8 +1,8 @@
-# Gambit
+# Gamme
 
 > Learn the patterns that beat games, then drill them
 
-- Live: https://gambit.neorgon.com/
+- Live: https://gamme.neorgon.com/
 - Part of the Neorgon tool suite (free, no signup, runs in your browser): https://neorgon.com/
 - Keywords: static-site, learning, games, drills
 

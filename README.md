@@ -1,6 +1,6 @@
 <div align="center">
 
-# Gambit
+# Gamme
 
 Learn the patterns that beat games, then drill them
 
@@ -18,7 +18,7 @@ Learn the patterns that beat games, then drill them
 [badge-claude]:  https://img.shields.io/badge/Claude_Code-CC785C?style=for-the-badge&logo=anthropic&logoColor=white
 [badge-license]: https://img.shields.io/badge/license-MIT-404040?style=for-the-badge
 
-[url-site]:   https://gambit.neorgon.com/
+[url-site]:   https://gamme.neorgon.com/
 [url-html]:   #
 [url-css]:    #
 [url-js]:     #
@@ -30,7 +30,7 @@ Learn the patterns that beat games, then drill them
 
 ## Overview
 
-Gambit teaches the pattern logic behind four games and then tests whether you actually
+Gamme teaches the pattern logic behind four games and then tests whether you actually
 have it. Each game states the one rule its named patterns reduce to, shows the patterns
 as cards you can read in seconds, and hands you scored positions against a clock. It is
 built for people who pick up patterns fast and do not want a tutorial that walks them
@@ -42,7 +42,7 @@ that measures how often a randomly dealt board is unwinnable. That last number i
 answer to a common and correct suspicion: two Minesweeper sites are frequently not
 running the same game.
 
-**Live:** gambit.neorgon.com
+**Live:** gamme.neorgon.com
 
 ---
 
@@ -116,7 +116,7 @@ everything a brute force finds, not merely to avoid claiming anything false.
 ![Architecture](docs/architecture.svg)
 
 ```
-gambit-site/
+gamme-site/
 ├── index.html                    # Shell: header, view tabs, modals
 ├── css/style.css                 # Site styles over the CDN token base
 ├── js/

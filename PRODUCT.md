@@ -1,4 +1,4 @@
-# Gambit: product one-pager
+# Gamme: product one-pager
 
 **What it is:** Learn the patterns that beat games, then drill them
 

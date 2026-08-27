@@ -3,6 +3,8 @@
 // slice is persisted: which game and view you were on, per-game
 // settings, and the drill record. Live boards are never saved.
 
+// Keeps the pre-rename key: the site was live as Gambit, and renaming this
+// would silently discard every existing visitor's saved progress.
 const STORAGE_KEY = 'gambit-state-v1';
 
 export const state = {
