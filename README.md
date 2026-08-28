@@ -69,8 +69,21 @@ running the same game.
 | Chess | A tactic is one move creating two threats that one move cannot answer |
 | Tollworks | Landing probability times rent, against cost. Sticker price is not that number |
 | 2048 | Merges need equal neighbours, so the game is keeping the board sorted |
+| Cards | Every play trades cards for tempo, or tempo for cards |
 
 Tollworks is an original dice economy variant, not a copy of any published board game.
+
+Cards has two halves. The **teardown** is designer-side: thirteen card systems compared
+on the four axes a game played once at a table is judged on, which are time to teach,
+whether a losing player can come back, waiting between turns, and early elimination.
+None of those are balance, and all of them decide whether a game gets played twice.
+It covers classics (UNO, Carioca, Truco, Hold'em), modern casual (Dominion, Love Letter,
+Sushi Go, Exploding Kittens, The Crew) and collectibles as contrast (Magic, Yu-Gi-Oh,
+Mitos y Leyendas, Hearthstone). The **patterns, drills and play** are player-side, run on
+a small original model game built so that lethal, curve and card advantage all have
+answers a search can settle. Nothing that needs an evaluation function is ever graded.
+
+Cards is the one section that is fully bilingual, EN and ES. The other four are English.
 It exists to teach expected value, return on investment and cash buffer, which are the
 concepts that category is built on.
 

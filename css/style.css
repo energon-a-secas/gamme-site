@@ -1474,3 +1474,125 @@ html:not([data-theme]) .header-bar[data-header-skin="custom"] {
   .cmp__row { grid-template-columns: minmax(120px, 1.2fr) repeat(4, minmax(78px, 1fr)); }
   .cmp { padding: var(--space-1); }
 }
+
+/* ── Cards: the model game board ───────────────────────────── */
+.mboard { display: flex; flex-direction: column; gap: var(--space-4); }
+.mside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+.mside__label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+}
+.mlife { color: #fca5a5; font-size: var(--text-sm); }
+.mmana { color: var(--game-accent); font-size: var(--text-sm); }
+.mrow { display: flex; flex-wrap: wrap; gap: var(--space-2); min-height: 44px; align-items: center; }
+.mrow--hand { padding-top: var(--space-2); border-top: 1px dashed var(--border); }
+.mempty { color: var(--text-muted); font-size: var(--text-sm); font-style: italic; }
+
+.mcreature {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 78px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color var(--dur), transform var(--dur-fast), opacity var(--dur);
+}
+.mcreature__name { font-size: var(--text-xs); font-weight: 600; }
+.mcreature__stats { font-size: var(--text-sm); color: var(--game-accent); font-weight: 700; }
+/* Sickness and spentness are the tempo rules made visible, so both are shown
+   with opacity AND a border, never colour alone. */
+.mcreature.is-sick { opacity: .55; border-style: dashed; }
+.mcreature.is-spent { opacity: .45; }
+.mcreature.is-selected { border-color: var(--game-accent); transform: translateY(-3px); }
+
+.mhandcard, .handcard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--text-xs);
+  text-align: left;
+}
+.mhandcard.is-playable { cursor: pointer; color: var(--text-primary); border-color: var(--border-strong); }
+.mhandcard.is-playable:hover { border-color: var(--game-accent); }
+.mhandcard:disabled { opacity: .45; }
+.handcard { flex-direction: column; align-items: flex-start; gap: 2px; min-width: 104px; cursor: pointer; }
+.handcard.is-picked { border-color: var(--game-accent); background: color-mix(in srgb, var(--game-accent) 16%, transparent); }
+.handcard__cost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--game-accent);
+  color: #1a0f08;
+  font-weight: 700;
+  font-size: var(--text-xs);
+}
+.handcard__name { font-weight: 600; color: var(--text-primary); font-size: var(--text-sm); }
+.handcard__body { color: var(--text-muted); }
+.handrow { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.curvetotal { font-variant-numeric: tabular-nums; color: var(--game-accent); font-weight: 700; }
+
+.facebtn {
+  align-self: flex-start;
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+.facebtn:hover { color: var(--text-primary); border-color: var(--game-accent); }
+
+.lethalbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.lethalbar.is-on { border-left-color: #34d399; color: #6ee7b7; }
+.lethalbar__warn { color: #fca5a5; }
+.playnote { font-size: var(--text-xs); color: var(--text-muted); }
+
+.verdict {
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--border-strong);
+  background: var(--surface-1);
+  font-size: var(--text-lg);
+}
+.verdict--win { border-left-color: #34d399; }
+.verdict--loss { border-left-color: #f87171; }

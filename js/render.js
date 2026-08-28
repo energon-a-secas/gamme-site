@@ -22,6 +22,12 @@ const VIEW_CATALOG = {
 
 const VIEW_ORDER = ['learn', 'teardown', 'drill', 'play', 'rules'];
 
+/** Chrome the pattern cards need in both languages. */
+const WHEN_LABEL = { en: 'When', es: 'Cuándo' };
+const THEN_LABEL = { en: 'Then', es: 'Entonces' };
+const WHY_LABEL = { en: 'Why it works', es: 'Por qué funciona' };
+const ONE_RULE_LABEL = { en: 'The one rule', es: 'La regla única' };
+
 function hasView(game, id) {
   if (id === 'learn') return Boolean(game.views.learn || (game.patterns && game.patterns.length));
   if (id === 'drill') return Boolean(game.drills && game.drills.levels && game.drills.levels.length);
@@ -120,8 +126,8 @@ export function defaultLearn(host, ctx, game) {
     if (!inTier.length) return null;
     return el('section', { class: 'section' },
       el('div', { class: 'section__titles' },
-        el('h2', { class: 'section__title', text: TIER_LABEL[tier] }),
-        el('p', { class: 'section__lead', text: TIER_BLURB[tier] }),
+        el('h2', { class: 'section__title', text: t(TIER_LABEL[tier]) }),
+        el('p', { class: 'section__lead', text: t(TIER_BLURB[tier]) }),
       ),
       el('div', { class: 'patterngrid' }, inTier.map(patternCard)),
     );
@@ -135,9 +141,9 @@ export function defaultLearn(host, ctx, game) {
 
 function coreRuleCard(rule) {
   return el('section', { class: 'corerule' },
-    el('span', { class: 'corerule__kicker', text: 'The one rule' }),
-    el('h2', { class: 'corerule__title', text: rule.title }),
-    el('p', { class: 'corerule__body', text: rule.body }),
+    el('span', { class: 'corerule__kicker', text: t(ONE_RULE_LABEL) }),
+    el('h2', { class: 'corerule__title', text: t(rule.title) }),
+    el('p', { class: 'corerule__body', text: t(rule.body) }),
     rule.formula ? el('code', { class: 'corerule__formula', text: rule.formula }) : null,
   );
 }
@@ -146,19 +152,19 @@ function patternCard(p) {
   const acc = accuracy(p.id);
   const card = el('article', { class: 'pcard', 'data-pattern': p.id },
     el('header', { class: 'pcard__head' },
-      el('h3', { class: 'pcard__name', text: p.name }),
+      el('h3', { class: 'pcard__name', text: t(p.name) }),
       acc === null
         ? el('span', { class: 'pcard__acc is-untested', text: 'untested' })
         : el('span', { class: `pcard__acc ${acc >= 0.8 ? 'is-good' : acc >= 0.5 ? 'is-mid' : 'is-bad'}`, text: `${Math.round(acc * 100)}%` }),
     ),
     p.diagram ? el('div', { class: 'pcard__diagram' }, p.diagram()) : null,
     el('dl', { class: 'pcard__rows' },
-      el('dt', { text: 'When' }), el('dd', { text: p.trigger }),
-      el('dt', { text: 'Then' }), el('dd', { text: p.action }),
+      el('dt', { text: t(WHEN_LABEL) }), el('dd', { text: t(p.trigger) }),
+      el('dt', { text: t(THEN_LABEL) }), el('dd', { text: t(p.action) }),
     ),
     p.why ? el('details', { class: 'pcard__why' },
-      el('summary', { text: 'Why it works' }),
-      el('p', { text: p.why }),
+      el('summary', { text: t(WHY_LABEL) }),
+      el('p', { text: t(p.why) }),
     ) : null,
     p.tags && p.tags.length ? el('div', { class: 'pcard__tags' },
       p.tags.map((t) => el('span', { class: 'tag', text: t }))) : null,

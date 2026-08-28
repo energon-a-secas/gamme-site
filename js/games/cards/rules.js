@@ -69,6 +69,20 @@ const DECISIONS = [
   },
 ];
 
+/** The switches that actually change the Play tab. */
+const RESOURCE_OPTIONS = [
+  { id: 'auto',
+    label: { en: 'Automatic, +1 a turn', es: 'Automático, +1 por turno' },
+    like: 'Hearthstone',
+    so: { en: 'No screw, no flood, no decision. The curve is guaranteed, so the game is about what you spend it on.',
+          es: 'Sin sequía, sin inundación, sin decisión. La curva está garantizada, así que el juego es en qué lo gastas.' } },
+  { id: 'none',
+    label: { en: 'No cost at all', es: 'Sin costo' },
+    like: 'Yu-Gi-Oh!',
+    so: { en: 'Play your whole hand on turn one. Try it once: it shows why a game with no resource curve has to police power with a banlist.',
+          es: 'Juega toda tu mano en el primer turno. Pruébalo una vez: muestra por qué un juego sin curva de recursos tiene que controlar el poder con una lista de prohibidas.' } },
+];
+
 export function rulesView(host, ctx) {
   const lang = state.lang;
   let picked = null;
@@ -76,8 +90,32 @@ export function rulesView(host, ctx) {
   const root = el('div', { class: 'stack stack--loose' });
   host.appendChild(root);
 
+  function liveSwitches() {
+    return el('section', { class: 'section' },
+      el('div', { class: 'section__titles' },
+        el('h2', { class: 'section__title', text: lang === 'es' ? 'Cambia el juego' : 'Change the game' }),
+        el('p', { class: 'section__lead', text: lang === 'es'
+          ? 'Esto es real: cambia el modelo de recursos y la pestaña Jugar juega otro juego. Es el argumento del teardown, jugable.'
+          : 'This one is live: change the resource model and the Play tab plays a different game. It is the teardown\'s argument, made playable.' }),
+      ),
+      el('div', { class: 'decision__opts' },
+        ...RESOURCE_OPTIONS.map((o) => el('button', {
+          class: `decision__opt${ctx.settings.resourceModel === o.id ? ' is-open' : ''}`,
+          type: 'button',
+          onclick: () => { ctx.settings.resourceModel = o.id; ctx.save(); ctx.rerender(); },
+        },
+          el('span', { class: 'decision__label', text: t(o.label) }),
+          el('span', { class: 'decision__count', text: ctx.settings.resourceModel === o.id ? '●' : '' }),
+          el('span', { class: 'decision__so', text: t(o.so) }),
+          el('span', { class: 'decision__who', text: `${lang === 'es' ? 'como' : 'like'} ${o.like}` }),
+        )),
+      ),
+    );
+  }
+
   function draw() {
     root.replaceChildren(
+      liveSwitches(),
       el('section', { class: 'section' },
         el('div', { class: 'section__titles' },
           el('h2', { class: 'section__title', text: lang === 'es' ? 'Las decisiones' : 'The decisions' }),

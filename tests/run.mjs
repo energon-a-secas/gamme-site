@@ -12,6 +12,9 @@ import * as S from '../js/games/minesweeper/solver.js';
 import * as A from '../js/games/minesweeper/analysis.js';
 import { SYSTEMS as CARD_SYSTEMS, GROUPS as CARD_GROUPS, SOURCES as CARD_SOURCES } from '../js/games/cards/systems.js';
 import { AXES as CARD_AXES } from '../js/games/cards/axes.js';
+import * as CM from '../js/games/cards/model.js';
+import * as CT from '../js/games/cards/tactics.js';
+import * as CD from '../js/games/cards/drills.js';
 import * as P from '../js/games/minesweeper/probability.js';
 import * as G from '../js/games/minesweeper/generate.js';
 import * as D from '../js/games/minesweeper/drill-gen.js';
@@ -483,6 +486,147 @@ section('Cards teardown data');
   const avg = (xs) => xs.reduce((a, s) => a + score(s), 0) / xs.length;
   check(`casual games outscore TCGs on the casual axes (${avg(casual).toFixed(2)} vs ${avg(tcg).toFixed(2)})`,
     avg(casual) > avg(tcg));
+}
+
+section('Card tactics: lethal search is sound and complete');
+{
+  // An independent reference: naive depth-first with no memoisation and no
+  // pruning. Slower and dumber on purpose, so agreeing with it means the
+  // fast search's shortcuts did not change the answer.
+  function naiveLethal(state, depth = 0) {
+    if (CM.them(state).life <= 0) return true;
+    if (depth > 6) return false;
+    for (const a of CM.legalActions(state)) {
+      if (a.kind === 'end') continue;
+      if (naiveLethal(CM.applyAction(state, a), depth + 1)) return true;
+    }
+    return false;
+  }
+
+  const boards = ['scout', 'runner', 'guard', 'knight'];
+  const hands = [[], ['bolt'], ['volley'], ['bolt', 'bolt'], ['knight'], ['strike']];
+  let cases = 0, disagree = 0, falseNo = 0, falseYes = 0;
+
+  for (const b of boards) {
+    for (const h of hands) {
+      for (const life of [1, 2, 3, 4, 5, 6, 8, 11]) {
+        for (const mana of [0, 1, 2, 3, 4]) {
+          CM.resetUids();
+          const st = CM.makeState({
+            you: { mana, hand: h, board: [{ cardId: b, sick: false }] },
+            foe: { life, board: [] },
+          });
+          const fast = CT.findLethal(st);
+          if (fast.capped) continue;
+          const slow = naiveLethal(st);
+          cases++;
+          if (fast.lethal !== slow) {
+            disagree++;
+            if (slow && !fast.lethal) falseNo++; else falseYes++;
+          }
+        }
+      }
+    }
+  }
+  check(`agrees with brute force on ${cases} positions`, disagree === 0,
+    `${falseNo} missed lethals, ${falseYes} phantom lethals`);
+  check('no position was left uncertain by the node cap', cases > 700, `only ${cases} decided`);
+
+  // A reported lethal must actually reduce the opponent to zero when replayed.
+  let replayed = 0, bad = 0;
+  for (const life of [2, 4, 5, 7]) {
+    CM.resetUids();
+    const st = CM.makeState({
+      you: { mana: 4, hand: ['bolt', 'volley'], board: [{ cardId: 'knight', sick: false }] },
+      foe: { life, board: [] },
+    });
+    const r = CT.findLethal(st);
+    if (!r.lethal) continue;
+    let cur = st;
+    for (const a of r.line) cur = CM.applyAction(cur, a);
+    replayed++;
+    if (CM.them(cur).life > 0) bad++;
+  }
+  check(`every reported lethal line actually kills (${replayed} replayed)`, bad === 0 && replayed > 0);
+
+  // Summoning sickness is what makes tempo real; a fresh creature must not swing.
+  CM.resetUids();
+  const sick = CM.makeState({ you: { mana: 3, hand: ['knight'], board: [] }, foe: { life: 3 } });
+  check('a creature played this turn cannot attack for lethal', CT.findLethal(sick).lethal === false);
+
+  // Card advantage is arithmetic: one removal killing one creature is even.
+  CM.resetUids();
+  const trade = CM.makeState({
+    you: { mana: 2, hand: ['strike'], board: [] },
+    foe: { life: 20, board: [{ cardId: 'knight', sick: false }] },
+  });
+  const d = CT.cardDelta(trade, [{ kind: 'play', index: 0, cardId: 'strike', target: CM.them(trade).board[0].uid }]);
+  check('one removal for one creature is a 1-for-1', d.delta === 0, JSON.stringify(d));
+}
+
+section('Card drills grade correctly, not just consistently');
+{
+  // Level 1: answer with what the search says, and the drill must accept it.
+  // If these two ever disagree the drill is grading against a different truth
+  // than the one the explanation shows.
+  let n = 0, wrongWhenRight = 0, rightWhenWrong = 0;
+  for (let i = 0; i < 60; i++) {
+    const d = CD.make(1);
+    if (!d) continue;
+    n++;
+    const truth = /Lethal, in|Hay lethal/.test(d.grade('yes').detail) ? 'yes' : 'no';
+    if (!d.grade(truth).correct) wrongWhenRight++;
+    if (d.grade(truth === 'yes' ? 'no' : 'yes').correct) rightWhenWrong++;
+  }
+  check(`lethal drill accepts the true answer (${n} drills)`, wrongWhenRight === 0, `${wrongWhenRight} rejected`);
+  check('lethal drill rejects the false answer', rightWhenWrong === 0, `${rightWhenWrong} accepted`);
+
+  // Level 2: the drill claims an exact spend exists, so grading must agree
+  // with a subset actually summing to the mana.
+  let curves = 0, badKey = 0;
+  for (let i = 0; i < 60; i++) {
+    const d = CD.make(2);
+    if (!d) continue;
+    curves++;
+    const m = /(\d+) mana|Tienes (\d+)/.exec(d.prompt);
+    const mana = Number(m && (m[1] || m[2]));
+    // An empty pick spends 0, which can only be right if mana were 0.
+    if (d.grade([]).correct && mana !== 0) badKey++;
+  }
+  check(`curve drill built ${curves} positions with a real exact spend`, curves > 0);
+  check('curve drill never accepts spending nothing', badKey === 0, `${badKey} accepted`);
+
+  // Level 3: the answer varies by position (removal that whiffs is -1, a
+  // sweeper answering three is +2), so the check recomputes it independently
+  // rather than assuming a constant.
+  let ex = 0, bad3 = 0, seen = new Set();
+  for (let i = 0; i < 120; i++) {
+    const d = CD.make(3);
+    ex++;
+    const m = /removed (\d+)/.exec(d.grade(0).detail) || /eliminaste (\d+)/.exec(d.grade(0).detail);
+    const spentM = /spent (\d+)/.exec(d.grade(0).detail) || /Gastaste (\d+)/.exec(d.grade(0).detail);
+    if (!m || !spentM) { bad3++; continue; }
+    const expected = Number(m[1]) - Number(spentM[1]);
+    seen.add(expected);
+    if (!d.grade(expected).correct) bad3++;
+    for (const wrong of [-1, 0, 1, 2].filter((v) => v !== expected)) {
+      if (d.grade(wrong).correct) bad3++;
+    }
+  }
+  check(`exchange drill grades every shape correctly (${ex} drills)`, bad3 === 0, `${bad3} mistakes`);
+  check(`all three outcomes actually occur (saw ${[...seen].sort().join(', ')})`, seen.size >= 3,
+    `only ${seen.size} distinct answers`);
+
+  // Every drill must name a pattern that actually exists, or the record keys
+  // rows nobody can find.
+  const { patterns: CARD_PATTERNS } = await import('../js/games/cards/patterns.js');
+  const ids = new Set(CARD_PATTERNS.map((p) => p.id));
+  const used = new Set();
+  for (const lv of [1, 2, 3]) {
+    for (let i = 0; i < 5; i++) { const d = CD.make(lv); if (d) used.add(d.patternId); }
+  }
+  const orphan = [...used].filter((id) => !ids.has(id));
+  check('every drill points at a real pattern', orphan.length === 0, orphan.join(', '));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

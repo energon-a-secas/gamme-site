@@ -50,8 +50,8 @@ export function teardownView(host, ctx) {
   function langBar() {
     return el('div', { class: 'langbar' },
       el('span', { class: 'langbar__note', text: lang === 'es'
-        ? 'Esta sección está en español. El resto del sitio está en inglés.'
-        : 'This section is bilingual. Everything else on the site is English only.' }),
+        ? 'Cards está completo en español. Los otros cuatro juegos están en inglés.'
+        : 'Cards is fully bilingual. The other four games are English only.' }),
       el('div', { class: 'langbar__toggle', role: 'group', 'aria-label': 'Language' },
         ...['en', 'es'].map((code) => el('button', {
           class: `langbtn${state.lang === code ? ' is-active' : ''}`,
