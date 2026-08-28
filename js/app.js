@@ -9,6 +9,7 @@ import './games/minesweeper/index.js';
 import './games/chess/index.js';
 import './games/economy/index.js';
 import './games/twenty48/index.js';
+import './games/cards/index.js';
 
 function init() {
   loadSaved(state);

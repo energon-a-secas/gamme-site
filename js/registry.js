@@ -37,8 +37,13 @@ export function registerGame(mod) {
   for (const key of required) {
     if (!mod[key]) throw new Error(`game module "${mod.id || '?'}" is missing ${key}`);
   }
-  if (!mod.views.play || !mod.views.rules) {
-    throw new Error(`game module "${mod.id}" needs both play and rules views`);
+  // A module used to need play + rules. The cards teardown is a study surface
+  // with no playable board yet, so the real requirement is that it can render
+  // something: the shell derives its tabs from what the module actually has.
+  const renderable = ['learn', 'teardown', 'play', 'rules'].some((v) => mod.views[v])
+    || (mod.patterns && mod.patterns.length);
+  if (!renderable) {
+    throw new Error(`game module "${mod.id}" has no renderable view`);
   }
   modules.set(mod.id, mod);
   return mod;

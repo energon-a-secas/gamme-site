@@ -10,6 +10,8 @@
 import * as E from '../js/games/minesweeper/engine.js';
 import * as S from '../js/games/minesweeper/solver.js';
 import * as A from '../js/games/minesweeper/analysis.js';
+import { SYSTEMS as CARD_SYSTEMS, GROUPS as CARD_GROUPS, SOURCES as CARD_SOURCES } from '../js/games/cards/systems.js';
+import { AXES as CARD_AXES } from '../js/games/cards/axes.js';
 import * as P from '../js/games/minesweeper/probability.js';
 import * as G from '../js/games/minesweeper/generate.js';
 import * as D from '../js/games/minesweeper/drill-gen.js';
@@ -444,6 +446,43 @@ section('Chess positions parse and their answers are real moves');
   }
   check('every stored solution moves a real white piece', badMoves === 0, `${badMoves} bad`);
   check('square naming round-trips', [...Array(64).keys()].every((i) => CB.squareIndex(CB.squareName(i)) === i));
+}
+
+section('Cards teardown data');
+{
+  check(`${CARD_SYSTEMS.length} systems across ${CARD_GROUPS.length} groups`, CARD_SYSTEMS.length === 13);
+
+  const ids = CARD_SYSTEMS.map((s) => s.id);
+  check('ids are unique', new Set(ids).size === ids.length);
+
+  // Half-translating is the likely failure once someone adds a system in a
+  // hurry, and it shows up as an English sentence inside the Spanish view.
+  const BILINGUAL = ['resource', 'information', 'entry', 'origin', 'family', 'works', 'failure', 'lesson'];
+  const half = CARD_SYSTEMS.filter((s) => BILINGUAL.some((f) => !s[f] || !s[f].en || !s[f].es));
+  check('every system is fully bilingual', half.length === 0, half.map((s) => s.name).join(', '));
+
+  const missing = CARD_SYSTEMS.filter((s) => CARD_AXES.some((a) => s[a.id] === undefined));
+  check('every system fills every axis', missing.length === 0, missing.map((s) => s.name).join(', '));
+
+  const SCALES = {
+    catchup: ['none', 'weak', 'strong'], downtime: ['none', 'low', 'high'],
+    elimination: ['no', 'late', 'yes'], interaction: ['none', 'indirect', 'direct'],
+  };
+  const badScale = CARD_SYSTEMS.flatMap((s) => Object.entries(SCALES)
+    .filter(([k, vals]) => !vals.includes(s[k])).map(([k]) => `${s.name}.${k}=${s[k]}`));
+  check('scale values are all legal', badScale.length === 0, badScale.join(', '));
+
+  check('every source is an https url', CARD_SOURCES.every((s) => /^https:\/\//.test(s.url)));
+
+  // The claim the view rests on. If a data edit ever inverts this, the thesis
+  // is wrong and the copy has to change, not the test.
+  const score = (s) => (s.elimination === 'no' ? 1 : 0) + (s.catchup !== 'none' ? 1 : 0)
+    + (s.downtime !== 'high' ? 1 : 0) + (s.teach <= 15 ? 1 : 0);
+  const casual = CARD_SYSTEMS.filter((s) => s.group !== 'tcg');
+  const tcg = CARD_SYSTEMS.filter((s) => s.group === 'tcg');
+  const avg = (xs) => xs.reduce((a, s) => a + score(s), 0) / xs.length;
+  check(`casual games outscore TCGs on the casual axes (${avg(casual).toFixed(2)} vs ${avg(tcg).toFixed(2)})`,
+    avg(casual) > avg(tcg));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

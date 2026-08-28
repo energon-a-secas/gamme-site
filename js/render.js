@@ -2,19 +2,41 @@
 // Game switcher, view tabs, and the default Learn view (pattern cards).
 // Everything below the tabs is drawn by the active game module.
 
-import { state, save, settingsFor, accuracy } from './state.js';
+import { state, save, settingsFor, accuracy, t } from './state.js';
 import { getGame, allGames, TIER_LABEL, TIER_BLURB } from './registry.js';
 import { mountDrills } from './drills.js';
 import { el, $ } from './utils.js';
 
-const VIEWS = [
-  { id: 'learn', label: 'Learn', hint: 'The pattern cards' },
-  { id: 'drill', label: 'Drill', hint: 'Positions against a clock' },
-  { id: 'play', label: 'Play', hint: 'The real game' },
-  { id: 'rules', label: 'Rules', hint: 'The switches that change it' },
-];
+/**
+ * Every view the shell knows how to show. A game gets the ones it actually
+ * has, in this order, so a module that is a study rather than a playable game
+ * does not have to fake a Play tab to satisfy the nav.
+ */
+const VIEW_CATALOG = {
+  learn:    { label: 'Learn',    hint: 'The pattern cards' },
+  teardown: { label: 'Teardown', hint: 'How the systems compare' },
+  drill:    { label: 'Drill',    hint: 'Positions against a clock' },
+  play:     { label: 'Play',     hint: 'The real game' },
+  rules:    { label: 'Rules',    hint: 'The switches that change it' },
+};
 
-let teardown = null;
+const VIEW_ORDER = ['learn', 'teardown', 'drill', 'play', 'rules'];
+
+function hasView(game, id) {
+  if (id === 'learn') return Boolean(game.views.learn || (game.patterns && game.patterns.length));
+  if (id === 'drill') return Boolean(game.drills && game.drills.levels && game.drills.levels.length);
+  return Boolean(game.views[id]);
+}
+
+export function viewsFor(game) {
+  const order = game.viewOrder || VIEW_ORDER;
+  return order
+    .filter((id) => VIEW_CATALOG[id] && hasView(game, id))
+    .map((id) => ({ id, ...VIEW_CATALOG[id], ...((game.viewLabels || {})[id] || {}) }));
+}
+
+/** Cleanup for the view currently on screen. Named for the lifecycle, not the tab. */
+let disposeView = null;
 
 export function render(s = state) {
   const game = getGame(s.game);
@@ -24,8 +46,13 @@ export function render(s = state) {
   const label = $('gameSwitchLabel');
   if (label) label.textContent = game.name;
 
+  // A game switch can land on a view the new module does not have (Cards has
+  // no Play yet). Fall back to its first tab rather than rendering nothing.
+  const available = viewsFor(game);
+  if (!available.some((v) => v.id === s.view)) s.view = available[0].id;
+
   renderGameMenu(game);
-  renderViewTabs(s);
+  renderViewTabs(s, game);
   renderView(s, game);
 }
 
@@ -46,10 +73,10 @@ function renderGameMenu(active) {
   )));
 }
 
-function renderViewTabs(s) {
+function renderViewTabs(s, game) {
   const tabs = $('viewTabs');
   if (!tabs) return;
-  tabs.replaceChildren(...VIEWS.map((v) => el('button', {
+  tabs.replaceChildren(...viewsFor(game).map((v) => el('button', {
     class: `viewtab${v.id === s.view ? ' is-active' : ''}`,
     type: 'button',
     'data-view': v.id,
@@ -61,8 +88,10 @@ function renderViewTabs(s) {
 function renderView(s, game) {
   const host = $('view');
   if (!host) return;
-  if (typeof teardown === 'function') { try { teardown(); } catch { /* module cleanup is best effort */ } }
-  teardown = null;
+  if (typeof disposeView === 'function') {
+    try { disposeView(); } catch { /* module cleanup is best effort */ }
+  }
+  disposeView = null;
   host.replaceChildren();
 
   const ctx = {
@@ -70,16 +99,16 @@ function renderView(s, game) {
     save: () => save(state),
     rerender: () => render(state),
     accent: game.accent,
+    lang: s.lang,
+    t,
   };
 
   if (s.view === 'learn') {
-    teardown = (game.views.learn || defaultLearn)(host, ctx, game);
+    disposeView = (game.views.learn || defaultLearn)(host, ctx, game);
   } else if (s.view === 'drill') {
-    teardown = mountDrills(host, game, ctx);
-  } else if (s.view === 'play') {
-    teardown = game.views.play(host, ctx);
-  } else if (s.view === 'rules') {
-    teardown = game.views.rules(host, ctx);
+    disposeView = mountDrills(host, game, ctx);
+  } else if (game.views[s.view]) {
+    disposeView = game.views[s.view](host, ctx, game);
   }
 }
 
