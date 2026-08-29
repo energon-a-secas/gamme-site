@@ -4,7 +4,7 @@
 
 - Live: https://gamme.neorgon.com/
 - Part of the Neorgon tool suite (free, no signup, runs in your browser): https://neorgon.com/
-- Keywords: static-site, learning, games, drills
+- Keywords: static-site, learning, games, drills, card-games, bilingual
 
 ## More Neorgon tools
 
