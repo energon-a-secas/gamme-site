@@ -1,0 +1,90 @@
+# CLAUDE.md: Gamme
+
+Learn the patterns that beat games, then drill them.
+
+**Live:** gamme.neorgon.com · **Port:** 8872
+
+## Run
+
+```bash
+make serve
+```
+
+Then open http://localhost:8872. It must be served over HTTP: the app is ES modules, and `file://` blocks them.
+
+## Architecture
+
+| Module | Lines | Owns |
+|---|---:|---|
+| `js/games/economy/match.js` | 355 | `createMatch`, `dealOpening`, `me`, `foe`, `ownsSet` |
+| `js/games/economy/drills.js` | 341 | `levels`, `make` |
+| `js/games/economy/game.js` | 321 | `SETS`, `BOARD`, `N`, `YARD`, `DEPOT` |
+| `js/games/twenty48/game.js` | 302 | `SIZE`, `CELLS`, `DIRS`, `DIR_LABEL`, `CORNERS` |
+| `js/games/twenty48/generate.js` | 296 | `liveSpawn`, `findPosition` |
+| `js/games/economy/view.js` | 291 | `playView` |
+| `js/games/chess/index.js` | 286 | none |
+| `js/games/cards/drills.js` | 274 | `levels`, `make` |
+| `js/games/economy/bot.js` | 269 | `POLICY`, `policyLines`, `setProgress`, `botBuy`, `worstNextRent` |
+| `js/games/twenty48/drills.js` | 256 | `levels`, `make` |
+| `js/games/minesweeper/probability.js` | 245 | `mineProbabilities`, `bestGuess`, `isForcedFiftyFifty`, `determinedByCount` |
+| `js/games/minesweeper/play.js` | 243 | `mountPlay`, `rulesetSummary` |
+| `js/games/cards/model.js` | 240 | `CREATURE`, `REMOVAL`, `BURN`, `DRAW`, `SWEEP` |
+| `js/games/minesweeper/solver.js` | 236 | `UNKNOWN`, `SAFE`, `MINE`, `knownFrom`, `deduce` |
+| `js/games/minesweeper/drill-levels.js` | 233 | `LEVELS`, `makeDrill` |
+| `js/games/cards/play.js` | 205 | `playView` |
+| `js/games/minesweeper/engine.js` | 200 | `HIDDEN`, `REVEALED`, `FLAGGED`, `DEFAULT_RULESET`, `DIFFICULTIES` |
+| `js/drills.js` | 199 | `mountDrills`, `renderScoreboard` |
+| `js/games/cards/systems-modern.js` | 198 | `MODERN` |
+| `js/games/minesweeper/drill-gen.js` | 197 | `TEMPLATE_PATTERNS`, `templatePosition`, `findPosition`, `findFiftyFifty`, `frontierOf` |
+| `js/games/minesweeper/view.js` | 196 | `MARK_NONE`, `MARK_SAFE`, `MARK_MINE`, `renderBoard`, `paintOverlay` |
+| `js/games/minesweeper/rules.js` | 193 | `mountRules` |
+| `js/games/twenty48/view.js` | 189 | `playView` |
+| `js/games/minesweeper/patterns.js` | 189 | `CORE_RULE`, `PATTERNS`, `PATTERN_BY_ID`, `RULE_TO_PATTERN` |
+| `js/events.js` | 185 | `openModal`, `closeModal`, `bindEvents` |
+| `js/games/economy/rules.js` | 183 | `rulesView` |
+| `js/render.js` | 174 | `viewsFor`, `render`, `defaultLearn` |
+| `js/games/cards/patterns.js` | 174 | `coreRule`, `patterns` |
+| `js/games/cards/teardown.js` | 172 | `teardownView` |
+| `js/games/cards/systems-tcg.js` | 164 | `TCG` |
+| `js/games/economy/index.js` | 160 | none |
+| `js/games/cards/systems-classic.js` | 159 | `CLASSIC` |
+| `js/games/minesweeper/analysis.js` | 159 | `analyze`, `solveFully`, `forcedCells` |
+| `js/games/cards/rules.js` | 158 | `rulesView` |
+| `js/games/economy/board.js` | 147 | `cellPos`, `boardEl`, `setLegend`, `stripEl`, `barsEl` |
+| `js/games/twenty48/patterns.js` | 144 | `coreRule`, `patterns` |
+| `js/games/cards/axes.js` | 139 | `coreRule`, `AXES`, `AXIS_BY_ID` |
+| `js/utils.js` | 134 | `$`, `escHtml`, `el`, `showToast`, `debounce` |
+| `js/games/chess/puzzles.js` | 129 | `PUZZLES`, `QUIET`, `PUZZLE_BY_ID` |
+| `js/games/chess/board.js` | 127 | `squareName`, `squareIndex`, `parseFen`, `renderBoard`, `moveSquares` |
+| `js/games/cards/tactics.js` | 123 | `findLethal`, `incomingDamage`, `cardDelta`, `exactCurveFits`, `tradeQuality` |
+| `js/games/minesweeper/generate.js` | 122 | `protectedCells`, `placeMines`, `isNoGuess`, `placeMinesNoGuess`, `openFirst` |
+| `js/games/twenty48/rules.js` | 121 | `rulesView` |
+| `js/games/twenty48/board.js` | 97 | `tileNode`, `paintBoard`, `boardNode`, `diagramNode`, `choiceRow` |
+| `js/state.js` | 96 | `state`, `loadSaved`, `t`, `setLang`, `save` |
+| `js/registry.js` | 81 | `registerGame`, `getGame`, `allGames`, `findPattern`, `allPatterns` |
+| `js/games/chess/rules.js` | 65 | `mountRules` |
+| `js/games/cards/systems.js` | 45 | `GROUPS`, `SYSTEMS`, `systemById`, `SOURCES` |
+| `js/games/minesweeper/index.js` | 38 | none |
+| `js/games/twenty48/index.js` | 34 | none |
+| `js/games/cards/index.js` | 34 | none |
+| `js/app.js` | 21 | none |
+
+Vendored from `packages/neorgon-ui/`, never edit in place; run the sync script instead: `js/neorgon-header.js`, `js/neorgon-footer.js`.
+
+## Data
+
+- `localStorage['gambit-state-v1']`
+
+## Conventions
+
+- Zero build step. Plain ES modules loaded by `js/app.js`.
+- Header and footer come from the shared kits. Do not add site-local `.neo-footer` or `.header-bar` CSS.
+- No single JS file over ~500 lines. It currently holds.
+
+## Gotchas
+
+TODO: the non-obvious failures. What broke here before, what looks wrong but is deliberate, what a reasonable change would break. This is the highest-value section; leave it empty rather than filling it with generic advice.
+
+## Do not touch
+
+- `js/neorgon-*.js` and `css/neorgon-*.css`: vendored kits, regenerated by `packages/neorgon-ui/sync-*.sh`.
